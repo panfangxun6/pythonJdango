@@ -13,23 +13,87 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path
 from KeywordRecommendationSystem import getKeyWords
 from django.http import JsonResponse
-def homex(request):
 
-    result = request.POST.get("name")
-    print(request.POST)
-    print(result)
-    return JsonResponse({"name":result})
+
+# 获取关键词
 def getkey(request):
     txt = request.POST.get("txt")
-    key =  getKeyWords.getKeyWord(txt)
-    return JsonResponse({"key":key})
+    print(request)
+    print(txt)
+    if txt is None:
+        return JsonResponse({"keyWords":[]})
+    else:
+        key = getKeyWords.getKeyWord(txt)
+        print(key)
+        return JsonResponse({"keyWords":key})
+
+# 获得分词结果
+def getCutWords(request):
+    txt = request.POST.get("text")
+    if txt is None:
+        return JsonResponse({"words": []})
+    else:
+        words = getKeyWords.cutWord(txt)
+        if len(words) is 0:
+            return JsonResponse({"words":txt})
+        else:
+            return JsonResponse({"words":words})
+
+# 获取同义词和相关系数
+def getSynonyms(request):
+    keysWords = request.POST.get("keyWords")
+    if keysWords is None:
+        return JsonResponse({"synonymsWords": []})
+    else:
+        realKeyWords = keysWords.split(",")
+        for i in realKeyWords:
+            print(i)
+        print(keysWords)
+        synonymsWords = getKeyWords.getSynomyms(realKeyWords)
+        print(synonymsWords)
+        return JsonResponse({"synonymsWords":synonymsWords})
+
+#获取同义词或同类词
+def getSynonymsByCL(request):
+    keyWords = request.POST.get("keyWords")
+    realKeyWords = keyWords.split(",")
+    for i in realKeyWords:
+        print(i)
+    print(keyWords)
+
+    result = getKeyWords.getSynomymsByCL(realKeyWords)
+    print(result)
+    return JsonResponse({"synonymsWords":result})
+
+
+def extendDictory(request):
+    keyWordsStr = request.GET.get("keyWords")
+    realKeyWords = []
+    if keyWordsStr is None:
+        return JsonResponse({"status":False})
+    else:
+        KeyWords = keyWordsStr.split(",")
+        keyWordsSet = set(KeyWords)
+
+        for words in keyWordsSet:
+            words = words.strip()
+            realKeyWords.append(words)
+        result = getKeyWords.extendDictory(realKeyWords)
+        return JsonResponse({"status": result})
+
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("dong",homex),
-    path("getKeyWord",getkey)
+    path("getKeyWord", getkey),
+    path("getSynonyms", getSynonyms),
+    path("getSynonymsByCL",getSynonymsByCL),
+    path("getWords",getCutWords),
+    path("extendDictory",extendDictory)
 
 ]
