@@ -20,7 +20,7 @@ stopWordFile = open("dict/stopWord",'r',encoding='utf-8')
 stopWord = []
 for line in stopWordFile.readline():
     stopWord.append(line.strip())
-print(stopWord)
+
 def removeStopWord(words):
     for word in words:
         if word in stopWord:
@@ -141,8 +141,12 @@ def cutWord(txt):
 
     print(enwords)
     resutltWord = enwords
-    words = removeStopWord(words)
-    resutltWord.append(words)
+    for word in words:
+        print(word)
+        # if word.flag in ["n","nt","nsf","nz","ns","nr"]:
+        #     resutltWord.append(word.word)
+
+        resutltWord.append(word)
 
 
     print(resutltWord)
@@ -195,7 +199,6 @@ def getSynomyms(keyWords):
 
                 scoreList.append('0.5')
                 wordList.append(word)
-            wordList = removeStopWord(wordList)
             cutResult.append(wordList)
             cutResult.append(scoreList)
 
@@ -216,7 +219,6 @@ def getSynomyms(keyWords):
                 for word in cutForSearchWords:
                     scoreList.append('0.5')
                     wordList.append(word)
-                wordList = removeStopWord(wordList)
                 cutResult.append(wordList)
                 cutResult.append(scoreList)
             synonymsResult = []
@@ -225,6 +227,8 @@ def getSynomyms(keyWords):
             if synonymsResult[0]:
                 for index,score in enumerate(synonymsResult[1]):
                     synonymsResult[1][index] = str(score)
+
+
                     resultWords.append(synonymsResult)
             resultWords.append(cutResult)
     return resultWords
