@@ -22,7 +22,7 @@ from django.http import JsonResponse
 
 # 获取关键词
 def getkey(request):
-    txt = request.POST.get("txt")
+    txt = request.GET.get("txt")
     print(request)
     print(txt)
     if txt is None:
@@ -34,33 +34,30 @@ def getkey(request):
 
 # 获得分词结果
 def getCutWords(request):
-    txt = request.POST.get("text")
+    txt = request.GET.get("text")
     if txt is None:
         return JsonResponse({"words": []})
     else:
         words = getKeyWords.cutWord(txt)
         if len(words) is 0:
-            return JsonResponse({"words":txt})
+            return JsonResponse({"words": txt})
         else:
-            return JsonResponse({"words":words})
+            return JsonResponse({"words": words})
 
 # 获取同义词和相关系数
 def getSynonyms(request):
-    keysWords = request.POST.get("keyWords")
+    keysWords = request.GET.get("keyWords")
     if keysWords is None:
         return JsonResponse({"synonymsWords": []})
     else:
         realKeyWords = keysWords.split(",")
-        for i in realKeyWords:
-            print(i)
-        print(keysWords)
         synonymsWords = getKeyWords.getSynomyms(realKeyWords)
         print(synonymsWords)
-        return JsonResponse({"synonymsWords":synonymsWords})
+        return JsonResponse({"synonymsWords": synonymsWords})
 
 #获取同义词或同类词
 def getSynonymsByCL(request):
-    keyWords = request.POST.get("keyWords")
+    keyWords = request.GET.get("keyWords")
     realKeyWords = keyWords.split(",")
     for i in realKeyWords:
         print(i)
@@ -68,7 +65,7 @@ def getSynonymsByCL(request):
 
     result = getKeyWords.getSynomymsByCL(realKeyWords)
     print(result)
-    return JsonResponse({"synonymsWords":result})
+    return JsonResponse({"synonymsWords": result})
 
 
 def extendDictory(request):
@@ -92,8 +89,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("getKeyWord", getkey),
     path("getSynonyms", getSynonyms),
-    path("getSynonymsByCL",getSynonymsByCL),
-    path("getWords",getCutWords),
-    path("extendDictory",extendDictory)
+    path("getSynonymsByCL", getSynonymsByCL),
+    path("getWords", getCutWords),
+    path("extendDictory", extendDictory)
 
 ]

@@ -5,10 +5,27 @@ import synonyms
 import jieba.posseg as pseg
 import re
 # 读入同义词林
+#
+# f = open('/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/cilin.txt', 'r', encoding='utf-8')
 f = open('dict/cilin.txt', 'r', encoding='utf-8')
+# jieba.load_userdict("/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newIDF.txt")
 jieba.load_userdict("dict/newWord.txt")
 symWords = []
 symClassWords = []
+
+
+
+#加载停用词
+stopWordFile = open("dict/stopWord",'r',encoding='utf-8')
+stopWord = []
+for line in stopWordFile.readline():
+    stopWord.append(line.strip())
+
+def removeStopWord(words):
+    for word in words:
+        if word in stopWord:
+            words.remove(word)
+    return words
 
 # 加载词林词典
 def getDic():
@@ -28,11 +45,14 @@ getDic()
 def extendDictory(keyWords):
     isOK = True
     flag = False
+    IDFFlag = True
+    # dic = open("/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newWord.txt", "r+", encoding='utf-8')
     dic = open("dict/newWord.txt","r+",encoding='utf-8')
     baseDic = open("venv/lib/python3.7/site-packages/jieba/dict.txt","r",encoding='utf-8')
+    baseIDF = open(r'dict/newIDF.txt','r+',encoding='utf-8')
+    IDFLines = baseIDF.readlines()
     lines = dic.readlines()
     for keyWord in keyWords:
-
         if len(lines) is not 0:
             for line in lines :
 
@@ -47,6 +67,12 @@ def extendDictory(keyWords):
         else:
             flag = True
 
+        for line in baseIDF:
+            if keyWord in line.strip()[0]:
+                IDFFlag = False
+        if IDFFlag:
+            baseIDF.write(keyWord)
+            baseIDF.write('\n')
 
         for line in baseDic.readlines():
             if keyWord in line.strip().split():
@@ -63,7 +89,11 @@ def extendDictory(keyWords):
             else:
                 print
                 "内容写入文件成功"
+    # jieba.load_userdict("/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newWord.txt")
+    # jieba.analyse.set_idf_path(r'/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newIDF.txt')
     jieba.load_userdict("dict/newWord.txt")
+    jieba.analyse.set_idf_path(r'dict/newIDF.txt')
+    baseIDF.close()
     dic.close()
     baseDic.close()
     return isOK
@@ -157,26 +187,50 @@ def getSynomymsByCL(keyWords):
 
 # 通过Synonyms获取同义词
 def getSynomyms(keyWords):
-    print(keyWords)
     resultWords = []
-    synonymsResult = []
-    cutForSearchWordsDic = {}
+    cutResult = []
+
     if len(keyWords) == 1:
-        cutForSearchWords = jieba.cut_for_search(keyWords, HMM=True)
-        scoreList =  ['0.5']*len(cutForSearchWords)
+        cutForSearchWords = jieba.cut_for_search(keyWords[0], HMM=True)
+        scoreList = ['0.5']
+        if cutForSearchWords:
+            wordList = []
+            for word in cutForSearchWords:
+
+                scoreList.append('0.5')
+                wordList.append(word)
+            cutResult.append(wordList)
+            cutResult.append(scoreList)
+
         synonymsResult = synonyms.nearby(keyWords[0])
-        for index,score in enumerate(synonymsResult[1]):
-            synonymsResult[1][index] = str(score)
-        resultWords.append(synonymsResult)
+        if synonymsResult[0]:
+            for index, score in enumerate(synonymsResult[1]):
+                synonymsResult[1][index] = str(score)
+                resultWords.append(synonymsResult)
+        resultWords.append(cutResult)
+
     else:
         for word in keyWords:
+            scoreList = []
+            cutForSearchWords = []
+            cutForSearchWords = jieba.cut_for_search(word, HMM=True)
+            if cutForSearchWords:
+                wordList = []
+                for word in cutForSearchWords:
+                    scoreList.append('0.5')
+                    wordList.append(word)
+                cutResult.append(wordList)
+                cutResult.append(scoreList)
             synonymsResult = []
+
             synonymsResult = synonyms.nearby(word)
-            for index,score in enumerate(synonymsResult[1]):
-                synonymsResult[1][index] = str(score)
-            resultWords.append(synonymsResult)
+            if synonymsResult[0]:
+                for index,score in enumerate(synonymsResult[1]):
+                    synonymsResult[1][index] = str(score)
+
+
+                    resultWords.append(synonymsResult)
+            resultWords.append(cutResult)
     return resultWords
 
 
-# print(getSynomyms(["老师","学生"]))
-# print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
