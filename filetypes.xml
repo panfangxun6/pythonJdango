@@ -4,6 +4,7 @@
     <extensionMap>
       <mapping pattern="newWord" type="PLAIN_TEXT" />
       <mapping pattern="stopWord" type="PLAIN_TEXT" />
+      <mapping pattern="newIDF" type="PLAIN_TEXT" />
       <mapping pattern="conf" type="XML" />
     </extensionMap>
   </component>
