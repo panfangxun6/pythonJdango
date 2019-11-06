@@ -2,7 +2,7 @@ import os.path
 import jieba
 # 自定义idf
 def updateIDF(inputPath:str,originDataCount):
-    originIDF = open(r'venv/lib/python3.7/site-packages/jieba/analyse/idf.txt','w+',encoding='utf-8')
+    originIDF = open(r'dict/newIDF.txt','w+',encoding='utf-8')
     originIDFLInes = originIDF.readlines()
     allWordsDic = {}
     if os.path.isdir(inputPath):
@@ -14,14 +14,14 @@ def updateIDF(inputPath:str,originDataCount):
         for i in range(0, len(list)):
             path = os.path.join(inputPath, list[i])
             if os.path.isfile(path):
-                passage = open(path,'r', encoding='utf-8')
+                passage = open(path, 'r', encoding='utf-8')
                 lines = passage.readlines()
                 for line in lines:
                     words = jieba.lcut_for_search(line)
                     for word in words:
                         currentWordValue = allWordsDic.get(word , default=0)
                         resultValue = currentWordValue + 1
-                        allWordsDic.update({word : resultValue})
+                        allWordsDic.update({word: resultValue})
 
 
     else:
@@ -46,11 +46,11 @@ def updateStopWord(inputPath:str):
 
     stopDir = inputPath
     stopDic = {}
-    stopWordFile = open(r'dict/stopWord','w+',encoding='utf-8')
+    stopWordFile = open(r'dict/stopWord.txt', 'w+', encoding='utf-8')
     if os.path.isdir(inputPath):
         stopDirList = os.listdir(stopDir)
-        for i in range(0,len(stopDirList)):
-            path = os.path.join(stopDir,stopDirList[i])
+        for i in range(0, len(stopDirList)):
+            path = os.path.join(stopDir, stopDirList[i])
             if os.path.isfile(path):
                 stopWord = open(path, 'r', encoding='utf-8')
                 lines = stopWord.readlines()
@@ -64,8 +64,8 @@ def updateStopWord(inputPath:str):
 
     for i in stopDic:
         for line in stopWordFile.readlines():
-          if i in line :
-            break
+            if i in line :
+                break
         stopWordFile.writelines(i)
 
 

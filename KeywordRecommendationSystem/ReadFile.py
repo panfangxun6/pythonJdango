@@ -2,6 +2,7 @@ import xlrd                                                        #导入xlrd�
 import KeywordRecommendationSystem.ReadJson as ReadJson
 
 
+
 class ExcelData():
     def __init__(self, data_path, sheetname):
         self.data_path = data_path                                 # excle表格路径，需传入绝对路径
@@ -58,8 +59,8 @@ if __name__ == '__main__':
 
 
     print(counter)
-for dic in result_list:
-   
-    ReadJson.getGoodname(dic.get("models"))
+# for dic in result_list:
+#
+#     ReadJson.getGoodname(dic.get("models"))
 
 
