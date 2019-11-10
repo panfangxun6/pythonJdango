@@ -18,23 +18,23 @@ from django.contrib import admin
 from django.urls import path
 from KeywordRecommendationSystem import getKeyWords
 from django.http import JsonResponse
+import json
 
 
 # 获取关键词
 def getkey(request):
-    txt = request.GET.get("txt")
-    print(request)
-    print(txt)
+    txt = request.POST.get("txt")
+
     if txt is None:
         return JsonResponse({"keyWords":[]})
     else:
         key = getKeyWords.getKeyWord(txt)
-        print(key)
-        return JsonResponse({"keyWords":key})
+        return JsonResponse({"keyWords": key})
 
 # 获得分词结果
 def getCutWords(request):
-    txt = request.GET.get("text")
+    txt = request.POST.get('text')
+
     if txt is None:
         return JsonResponse({"words": []})
     else:
@@ -80,17 +80,22 @@ def extendDictory(request):
         for words in keyWordsSet:
             words = words.strip()
             realKeyWords.append(words)
-        result = getKeyWords.extendDictory(realKeyWords)
+        result = getKeyWords.extendDictory(realKeyWords) and getKeyWords.extendIDF(realKeyWords)
         return JsonResponse({"status": result})
 
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # 初始化
     path("getKeyWord", getkey),
+    # 近义词
     path("getSynonyms", getSynonyms),
+    # 近义词
     path("getSynonymsByCL", getSynonymsByCL),
+    # 搜索切词
     path("getWords", getCutWords),
+    # 扩充词典
     path("extendDictory", extendDictory)
 
 ]

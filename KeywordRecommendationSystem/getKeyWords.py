@@ -2,55 +2,73 @@ import jieba
 import jieba.analyse
 from io import *
 import synonyms
+import docx
 import jieba.posseg as pseg
 import re
-# 读入同义词林
-#
-# f = open('/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/cilin.txt', 'r', encoding='utf-8')
-f = open('dict/cilin.txt', 'r', encoding='utf-8')
-# jieba.load_userdict("/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newIDF.txt")
 jieba.load_userdict("dict/newWord.txt")
 symWords = []
 symClassWords = []
-
-
-
-#加载停用词
-stopWordFile = open("dict/stopWord",'r',encoding='utf-8')
 stopWord = []
-for line in stopWordFile.readline():
-    stopWord.append(line.strip())
+jieba.analyse.set_stop_words("dict/stopWord.txt")
+jieba.analyse.set_idf_path('dict/newIDF.txt')
+#加载停用词
+def loadStopWord():
+    stopWordFile = open("dict/stopWord.txt",'r',encoding='utf-8')
 
-def removeStopWord(words):
+    for line in stopWordFile.readlines():
+        stopWord.append(line.strip())
+
+loadStopWord()
+def removeStopWords(words):
+    result =[]
     for word in words:
-        if word in stopWord:
-            words.remove(word)
-    return words
+        if word not in stopWord:
 
-# 加载词林词典
-def getDic():
-    lines = f.readlines()
-    for line in lines:
-        line = line.replace('\n', '')
-        items = line.split(' ')
-        index = items[0]
-        if index[-1] == '=':
-            symWords.append(items[1:])
-        if index[-1] == '#':
-            symClassWords.append(items[1:])
-getDic()
+            result.append(word)
+
+    return result
+
+
+# 扩充idf，权重根据词的长度，越长的词准确输入的概率越低，所以词越长逆文本频率越高
+def extendIDF(keyWords):
+    isOK = True
+    IDFFlag = True
+    baseIDF = open(r'dict/testIDF.txt', 'r+', encoding='utf-8')
+    IDFLines = baseIDF.readlines()
+    for keyWord in keyWords:
+        if len(IDFLines) is not 0:
+            for line in IDFLines:
+
+                if keyWord not in line.strip().split():
+
+                    IDFFlag = True
+                else:
+                    print("匹配到相同的")
+
+                    IDFFlag = False
+                    break
+        else:
+            IDFFlag = True
+
+        if IDFFlag:
+            try:
+                baseIDF.write(keyWord + " " + str(len(keyWord) * 0.5 + 13.00))
+                baseIDF.write('\n')
+            except IOError:
+                print("Error: 写入失败")
+                isOK = False
+    baseIDF.close()
+    jieba.analyse.set_idf_path('dict/testIDF.txt')
+    return isOK
 
 
 #扩充词典
 def extendDictory(keyWords):
     isOK = True
     flag = False
-    IDFFlag = True
     # dic = open("/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newWord.txt", "r+", encoding='utf-8')
-    dic = open("dict/newWord.txt","r+",encoding='utf-8')
+    dic = open("dict/newIDF.txt","r+",encoding='utf-8')
     baseDic = open("venv/lib/python3.7/site-packages/jieba/dict.txt","r",encoding='utf-8')
-    baseIDF = open(r'dict/newIDF.txt','r+',encoding='utf-8')
-    IDFLines = baseIDF.readlines()
     lines = dic.readlines()
     for keyWord in keyWords:
         if len(lines) is not 0:
@@ -67,16 +85,15 @@ def extendDictory(keyWords):
         else:
             flag = True
 
-        for line in baseIDF:
-            if keyWord in line.strip()[0]:
-                IDFFlag = False
-        if IDFFlag:
-            baseIDF.write(keyWord)
-            baseIDF.write('\n')
 
-        for line in baseDic.readlines():
-            if keyWord in line.strip().split():
+        for line  in baseDic.readlines():
+            if keyWord  not in line.strip().split():
+                flag = True
+            else:
+                print("匹配到相同的")
+
                 flag = False
+                break
         if flag:
             try:
                 dic.write(keyWord+" n")
@@ -91,25 +108,21 @@ def extendDictory(keyWords):
                 "内容写入文件成功"
     # jieba.load_userdict("/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newWord.txt")
     # jieba.analyse.set_idf_path(r'/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newIDF.txt')
-    jieba.load_userdict("dict/newWord.txt")
-    jieba.analyse.set_idf_path(r'dict/newIDF.txt')
-    baseIDF.close()
+    jieba.load_userdict("dict/newIDF.txt")
+
     dic.close()
     baseDic.close()
     return isOK
 
-# txt = open(r"/Users/zuchebao/Downloads/全职高手【完本】.txt", "r", encoding='utf-8').read()
+
 def getKeyWord(txt):
     score = []
     keyWords = []
     result = []
-    keywords_textrank = jieba.analyse.extract_tags(txt, topK=5, withWeight=True, allowPOS=('n', 'nr', 'ns', 'a'), withFlag=False)
+    keywords_textrank = jieba.analyse.extract_tags(txt, topK=10, withWeight=True, allowPOS=('n', 'nr', 'ns', 'a'), withFlag=False)
     for index,item in enumerate(keywords_textrank):
         score.append(str(keywords_textrank[index][1]))
-
-        print(score)
         keyWords.append(keywords_textrank[index][0])
-        print(keyWords)
     result.append(keyWords)
     result.append(score)
 
@@ -117,7 +130,7 @@ def getKeyWord(txt):
     return result
 
 def cutWord(txt):
-    words = jieba.cut_for_search(txt,HMM=True)
+    words = removeStopWords(list(jieba.cut_for_search(txt,HMM=True)))
 
     uncn = re.compile(r'[\u0061-\u007a,\u0020]')
     en = "".join(uncn.findall(txt.lower()))
@@ -139,50 +152,11 @@ def cutWord(txt):
             if index == len(en):
                 break
 
-    print(enwords)
     resutltWord = enwords
-    for word in words:
-        print(word)
-        # if word.flag in ["n","nt","nsf","nz","ns","nr"]:
-        #     resutltWord.append(word.word)
 
-        resutltWord.append(word)
+    resutltWord.append(words)
 
-
-    print(resutltWord)
     return resutltWord
-
-
-# 通过同义词林获取近义词和同义词
-def getSym(w, wordSet):
-    # wordSet: 同义词词集或相关词词集
-    results = []
-    if len(w) == 1:
-        for each in wordSet:
-            for word in each:
-                if w[0] == word:
-                    results.append(each)
-                    print(each)
-                    break
-    else:
-        for each in wordSet:
-            for word in each:
-                for i in w:
-                    if i == word:
-                        results.append(each)
-                        print(each)
-                        break
-
-    return results
-
-
-def getSynomymsByCL(keyWords):
-
-
-
-       return getSym(keyWords,symWords) + (getSym(keyWords,symClassWords))
-
-
 
 
 # 通过Synonyms获取同义词
@@ -191,18 +165,17 @@ def getSynomyms(keyWords):
     cutResult = []
 
     if len(keyWords) == 1:
-        cutForSearchWords = jieba.cut_for_search(keyWords[0], HMM=True)
-        scoreList = ['0.5']
+        cutForSearchWords = removeStopWords(list(jieba.cut_for_search(keyWords[0], HMM=True)))
+        scoreList = []
         if cutForSearchWords:
-            wordList = []
-            for word in cutForSearchWords:
 
+            for word in cutForSearchWords:
                 scoreList.append('0.5')
-                wordList.append(word)
-            cutResult.append(wordList)
+
+            cutResult.append(cutForSearchWords)
             cutResult.append(scoreList)
 
-        synonymsResult = synonyms.nearby(keyWords[0])
+        synonymsResult = list(synonyms.nearby(keyWords[0]))
         if synonymsResult[0]:
             for index, score in enumerate(synonymsResult[1]):
                 synonymsResult[1][index] = str(score)
@@ -213,24 +186,51 @@ def getSynomyms(keyWords):
         for word in keyWords:
             scoreList = []
             cutForSearchWords = []
-            cutForSearchWords = jieba.cut_for_search(word, HMM=True)
+            cutForSearchWords = removeStopWords(list(jieba.cut_for_search(word, HMM=True)))
             if cutForSearchWords:
-                wordList = []
                 for word in cutForSearchWords:
+                    print(word)
                     scoreList.append('0.5')
-                    wordList.append(word)
-                cutResult.append(wordList)
+
+                cutResult.append(cutForSearchWords)
                 cutResult.append(scoreList)
             synonymsResult = []
 
-            synonymsResult = synonyms.nearby(word)
+            synonymsResult = list(synonyms.nearby(word))
             if synonymsResult[0]:
                 for index,score in enumerate(synonymsResult[1]):
                     synonymsResult[1][index] = str(score)
 
 
                     resultWords.append(synonymsResult)
+
             resultWords.append(cutResult)
     return resultWords
+
+
+def readDocx():
+    # category = []
+    file = docx.Document('/Users/zuchebao/Desktop/file.docx')
+    # for para in file.paragraphs:
+    #    print(para.text.split())
+    # getkey.extendDictory(category)
+    for table in file.tables:
+        rows = table.rows
+        for row in rows:
+            keyWord = []
+            key = row.cells[1].text.strip()
+            print(key)
+            keyWord.append(key)
+            if row.cells[2] is not '':
+                for word in (row.cells[2].text.split('、')):
+                        if (word.strip()) is not '':
+                            for realWord in pseg.cut(word.strip,HMM=True):
+                                if realWord[1] in ['n', 'nr', 'ns']:
+                                    keyWord.append(realWord[0])
+            for cutWord in (pseg.cut(key,HMM=True)):
+                if cutWord[1] is ['n', 'nr', 'ns']:
+                    keyWord.append(cutWord[0])
+        keyWord = list(set(keyWord))
+        extendDictory(removeStopWords(keyWord))
 
 
