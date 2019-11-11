@@ -2,13 +2,14 @@ import jieba
 import jieba.analyse
 from io import *
 import synonyms
-import docx
+# import docx
 import jieba.posseg as pseg
 import re
 jieba.load_userdict("dict/newWord.txt")
 symWords = []
 symClassWords = []
 stopWord = []
+
 jieba.analyse.set_stop_words("dict/stopWord.txt")
 jieba.analyse.set_idf_path('dict/newIDF.txt')
 #加载停用词
@@ -33,7 +34,7 @@ def removeStopWords(words):
 def extendIDF(keyWords):
     isOK = True
     IDFFlag = True
-    baseIDF = open(r'dict/testIDF.txt', 'r+', encoding='utf-8')
+    baseIDF = open(r'dict/newIDF.txt', 'r+', encoding='utf-8')
     IDFLines = baseIDF.readlines()
     for keyWord in keyWords:
         if len(IDFLines) is not 0:
@@ -58,7 +59,7 @@ def extendIDF(keyWords):
                 print("Error: 写入失败")
                 isOK = False
     baseIDF.close()
-    jieba.analyse.set_idf_path('dict/testIDF.txt')
+    jieba.analyse.set_idf_path('dict/newIDF.txt')
     return isOK
 
 
@@ -67,13 +68,11 @@ def extendDictory(keyWords):
     isOK = True
     flag = False
     # dic = open("/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newWord.txt", "r+", encoding='utf-8')
-    dic = open("dict/newIDF.txt","r+",encoding='utf-8')
-    baseDic = open("venv/lib/python3.7/site-packages/jieba/dict.txt","r",encoding='utf-8')
+    dic = open("dict/newWord.txt","r+",encoding='utf-8')
     lines = dic.readlines()
     for keyWord in keyWords:
         if len(lines) is not 0:
             for line in lines :
-
                 if keyWord not in line.strip().split():
 
                     flag = True
@@ -85,15 +84,6 @@ def extendDictory(keyWords):
         else:
             flag = True
 
-
-        for line  in baseDic.readlines():
-            if keyWord  not in line.strip().split():
-                flag = True
-            else:
-                print("匹配到相同的")
-
-                flag = False
-                break
         if flag:
             try:
                 dic.write(keyWord+" n")
@@ -108,10 +98,9 @@ def extendDictory(keyWords):
                 "内容写入文件成功"
     # jieba.load_userdict("/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newWord.txt")
     # jieba.analyse.set_idf_path(r'/Users/zuchebao/PycharmProjects/KeywordRecommendationSystem/dict/newIDF.txt')
-    jieba.load_userdict("dict/newIDF.txt")
+    jieba.load_userdict("dict/newWord.txt")
 
     dic.close()
-    baseDic.close()
     return isOK
 
 
@@ -131,7 +120,7 @@ def getKeyWord(txt):
 
 def cutWord(txt):
     words = removeStopWords(list(jieba.cut_for_search(txt,HMM=True)))
-
+    resutltWord = []
     uncn = re.compile(r'[\u0061-\u007a,\u0020]')
     en = "".join(uncn.findall(txt.lower()))
 
@@ -154,7 +143,7 @@ def cutWord(txt):
 
     resutltWord = enwords
 
-    resutltWord.append(words)
+    resutltWord.extend(words)
 
     return resutltWord
 
@@ -208,29 +197,69 @@ def getSynomyms(keyWords):
     return resultWords
 
 
-def readDocx():
-    # category = []
-    file = docx.Document('/Users/zuchebao/Desktop/file.docx')
-    # for para in file.paragraphs:
-    #    print(para.text.split())
-    # getkey.extendDictory(category)
-    for table in file.tables:
-        rows = table.rows
-        for row in rows:
-            keyWord = []
-            key = row.cells[1].text.strip()
-            print(key)
-            keyWord.append(key)
-            if row.cells[2] is not '':
-                for word in (row.cells[2].text.split('、')):
-                        if (word.strip()) is not '':
-                            for realWord in pseg.cut(word.strip,HMM=True):
-                                if realWord[1] in ['n', 'nr', 'ns']:
-                                    keyWord.append(realWord[0])
-            for cutWord in (pseg.cut(key,HMM=True)):
-                if cutWord[1] is ['n', 'nr', 'ns']:
-                    keyWord.append(cutWord[0])
-        keyWord = list(set(keyWord))
-        extendDictory(removeStopWords(keyWord))
+# 修改权重
+def changeWeights(weight,start,end,word = "",):
+    isSingle = len(word)
+    oldidf = open(r'dict/newIDF.txt', 'r', encoding='utf-8')
+    lines = oldidf.readlines()
+    oldidf.close()
+    newidf = open(r'dict/newIDF.txt', 'w', encoding='utf-8')
 
+    if end is 0:
+        end = len(lines)
+    if isSingle:
+        start = 0
+    try:
+        for i, line in enumerate(lines):
+            if i in range(start, end):
+                lineList = line.split()
+                change = (float(lineList[1]) + float(weight))
+                if isSingle:
+                    if lineList[0] == word:
+                        if change > 0:
+                            newidf.write(lineList[0] + " " + str(change))
+                            newidf.write('\n')
+                        else:
+                            continue
+                    else:
+                        newidf.write(line)
+                    continue
 
+                if change > 0:
+                    newidf.write(lineList[0] + " " + str(change))
+                    newidf.write('\n')
+                else:
+                    continue
+            else:
+                newidf.write(line)
+    except IOError:
+        return False
+
+    return True
+
+# def readDocx():
+#     # category = []
+#     file = docx.Document('/Users/zuchebao/Desktop/file.docx')
+#     # for para in file.paragraphs:
+#     #    print(para.text.split())
+#     # getkey.extendDictory(category)
+#     for table in file.tables:
+#         rows = table.rows
+#         for row in rows:
+#             keyWord = []
+#             key = row.cells[1].text.strip()
+#             print(key)
+#             keyWord.append(key)
+#             if row.cells[2] is not '':
+#                 for word in (row.cells[2].text.split('、')):
+#                         if (word.strip()) is not '':
+#                             for realWord in pseg.cut(word.strip,HMM=True):
+#                                 if realWord[1] in ['n', 'nr', 'ns']:
+#                                     keyWord.append(realWord[0])
+#             for cutWord in (pseg.cut(key,HMM=True)):
+#                 if cutWord[1] is ['n', 'nr', 'ns']:
+#                     keyWord.append(cutWord[0])
+#         keyWord = list(set(keyWord))
+#         extendDictory(removeStopWords(keyWord))
+#
+#
