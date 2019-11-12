@@ -53,7 +53,7 @@ def extendIDF(keyWords):
 
         if IDFFlag:
             try:
-                baseIDF.write(keyWord + " " + str(len(keyWord) * 0.5 + 13.00))
+                baseIDF.write(keyWord + " " + len(keyWord) * 6.0 + 10)
                 baseIDF.write('\n')
             except IOError:
                 print("Error: 写入失败")
@@ -234,7 +234,7 @@ def changeWeights(weight,start,end,word = "",):
                 newidf.write(line)
     except IOError:
         return False
-
+    jieba.analyse.set_idf_path('dict/newIDF.txt')
     return True
 
 # def readDocx():
