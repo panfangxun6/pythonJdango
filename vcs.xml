@@ -6,6 +6,10 @@
           <option name="url" value="https://github.com/liuyukang1/knowledgeMap.git" />
           <option name="userName" value="" />
         </UrlAndUserName>
+        <UrlAndUserName>
+          <option name="url" value="https://git.lug.ustc.edu.cn/hanxin00/305Spider" />
+          <option name="userName" value="" />
+        </UrlAndUserName>
       </list>
     </option>
     <option name="cloneParentDir" value="$USER_HOME$/Desktop/垃圾搜索" />
