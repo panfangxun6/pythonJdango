@@ -34,6 +34,10 @@
           <option name="url" value="git@git.lug.ustc.edu.cn:hanxin00/305Spider.git" />
           <option name="userName" value="" />
         </UrlAndUserName>
+        <UrlAndUserName>
+          <option name="url" value="https://github.com/hanxin00/305spider.git" />
+          <option name="userName" value="" />
+        </UrlAndUserName>
       </list>
     </option>
     <option name="cloneParentDir" value="$USER_HOME$/Desktop/实验室项目/政府采集" />
