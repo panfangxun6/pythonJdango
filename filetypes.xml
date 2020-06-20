@@ -2,6 +2,8 @@
   <component name="FileTypeManager" version="17">
     <ignoreFiles list="*$py.class;*.hprof;*.pyc;*.pyo;*.rbc;*.yarb;*~;.DS_Store;.git;.hg;.svn;CVS;__pycache__;_svn;vssver.scc;vssver2.scc;" />
     <extensionMap>
+      <mapping pattern=".part-00000-2212b4fe-d0d6-4c2d-9e0d-6b1a33a5285a-c000.snappy.parquet.crc" type="PLAIN_TEXT" />
+      <mapping pattern="_SUCCESS" type="PLAIN_TEXT" />
       <mapping pattern="base_word" type="PLAIN_TEXT" />
       <mapping pattern="newIDF" type="PLAIN_TEXT" />
       <mapping pattern="stopWord" type="PLAIN_TEXT" />
