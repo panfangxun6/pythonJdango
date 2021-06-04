@@ -1,5 +1,5 @@
 absl-py==0.8.1
-Django==2.2.6
+Django==2.2.21
 jieba==0.39
 joblib==0.14.0
 numpy==1.17.3
